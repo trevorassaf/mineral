@@ -1,0 +1,12 @@
+This directory contains the following files: 
+
+catalog.sql: test scanning the catalog relations
+
+insert.sql: test inserting tuples into a relation
+
+datamation.sql: create two relations with datamation-like schema
+
+select.sql: test selection queries on the datamation relations
+
+join.sql: test join queries on the datamation relations.
+
