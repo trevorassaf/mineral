@@ -26,7 +26,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     Status status = attrCat->getRelInfo(relation, relAttrCnt, attrs);
     // Handle errors on schema fetch
     if (status != OK) {
-      Error::print(status);
+      return status;
     }
     
     // Ensure number of inserted attributes equals number of attributes in record
@@ -68,14 +68,14 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     // Obtain heapfile
     HeapFile hf(relation, status);
     if (status != OK) {
-      Error::print(status);
+      return status;
     }
     
     // Insert record into heapfile
     RID rid;
     status = hf.insertRecord(record, rid);
     if (status != OK) {
-      Error::print(status);
+      return status;
     }
 
     // Identify indexes on this relation
@@ -90,7 +90,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
         status
       );
       if (status != OK) {
-        Error::print(status);
+        return status;
       }
 
       // Insert entry into index
