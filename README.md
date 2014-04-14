@@ -1,4 +1,5 @@
 mineral
 =======
 
-DBMS Implementation P4 EECS484
+DBMS Implementation Project 4 EECS484
+
