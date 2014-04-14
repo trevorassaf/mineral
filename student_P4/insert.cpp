@@ -4,6 +4,7 @@
 #include <cassert>
 #include <vector>
 #include <cstring>
+#include "utility.h"
 
 /*
  * Inserts a record into the specified relation
@@ -51,8 +52,10 @@ Status Updates::Insert(const string& relation,      // Name of the relation
         if (!strcmp(attrs->attrName, attrList[j].attrName)) {
           // Copy inserted data into record 
           memcpy(rData + attrs->attrOffset, attrList[j].attrValue, attrs->attrLen);
-          if(attrs->indexed)
+          if(attrs->indexed) {
             v1.push_back(i);
+          }
+          break;
         }
       }
       ++attrs;
@@ -76,7 +79,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     }
 
     // Identify indexes on this relation
-    for(int i = 0; i < v1.size(); ++i) {
+    for (int i = 0; i < v1.size(); ++i) {
       // Obtain index associated with this attribute
       Index index(
         relation,
@@ -95,6 +98,5 @@ Status Updates::Insert(const string& relation,      // Name of the relation
       memcpy(ikValue, rData + attrs[v1[i]].attrOffset, attrs[v1[i]].attrLen);
       index.insertEntry(ikValue, rid);
     }
-
     return OK;
 }
