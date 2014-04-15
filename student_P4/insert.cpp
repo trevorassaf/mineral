@@ -29,7 +29,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
       return status;
     }
     
-    // Ensure number of inserted attributes equals number of attributes in record
+    // TODO: Ensure number of inserted attributes equals number of attributes in record
     assert(relAttrCnt == attrCnt);
 
     // Construct new record from attribute data
@@ -48,15 +48,19 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     vector<int> v1;
 
     for (int i = 0; i < relAttrCnt; ++i) {
+      bool check = false;
       for (int j = 0; j < attrCnt; ++j) {
         if (!strcmp(attrs->attrName, attrList[j].attrName)) {
           // Copy inserted data into record 
           memcpy(rData + attrs->attrOffset, attrList[j].attrValue, attrs->attrLen);
+          check = true;
           if(attrs->indexed) {
             v1.push_back(i);
           }
           break;
         }
+        //TODO: Figure out how to handle this
+        assert(check)
       }
       ++attrs;
     }
