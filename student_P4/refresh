@@ -5,4 +5,5 @@ make clean
 make
 ./dbcreate testdb
 clear
-./minirel testdb sql/insert.sql
+./minirel testdb sql/datamation.sql
+./minirel testdb sql/select.sql
