@@ -43,7 +43,7 @@ Status Operators::Join(const string& result,           // Name of the output rel
   }
   
   // Construct list of projected attribute descriptions
-  AttrDesc* projAttrDescs = new AttrDescs[projCnt];
+  AttrDesc* projAttrDescs = new AttrDesc[projCnt];
   int reclen = 0;
   for (int i = 0; i < projCnt; ++i) {
     bool found = false;
@@ -99,7 +99,7 @@ Status Operators::Join(const string& result,           // Name of the output rel
       reclen);
   }
   
-  if (cDesc1->indexed || cDesc2->indexed) {
+  if (cDesc1.indexed || cDesc2.indexed) {
     return INL(
       result,
       projCnt,

@@ -2,6 +2,8 @@
 #include "query.h"
 #include "sort.h"
 #include "index.h"
+#include <cstring>
+#include <string>
 
 Status Operators::SNL(const string& result,           // Output relation name
                       const int projCnt,              // Number of attributes in the projection
@@ -16,13 +18,14 @@ Status Operators::SNL(const string& result,           // Output relation name
   // Obtain relation names
   string relation1 = attrDesc1.relName;
   string relation2 = attrDesc2.relName;
-
+  Status status;
+  
   // Initialize input heap file scans
-  Status status = HeapFileScan hfs1(relation1, status);
+  HeapFileScan hfs1(relation1, status);
   if (status != OK) {
     return status;
   }
-  Status status = HeapFileScan hfs2(relation2, status);
+  HeapFileScan hfs2(relation2, status);
   if (status != OK) {
     return status;
   }
@@ -59,21 +62,21 @@ Status Operators::SNL(const string& result,           // Output relation name
         record2,
         attrDesc1,
         attrDesc2);
-      if (op == LT && comparison < 0 ||
-          op == LTE && comparison <= 0 ||
-          op == EQ && comparison == 0 ||
-          op == GT && comparison > 0 ||
-          op == GTE && comparison >= 0 ||
-          op == NE && compariosn != 0) {
+      if ((op == LT && comparison < 0) ||
+          (op == LTE && comparison <= 0) ||
+          (op == EQ && comparison == 0) ||
+          (op == GT && comparison > 0) ||
+          (op == GTE && comparison >= 0) ||
+          (op == NE && comparison != 0)) {
         // Records satisfy join criterion, perform join
         char* rData = new char[reclen];
         for (int adaIdx = 0; adaIdx < projCnt; ++adaIdx) {
           // Select record associated with this particular projection attribute
           //  differentiate based on relation name
-          Record* inputRecord = strcmp(attrDescArray[adaIdx].relName, relation1)
+          Record* inputRecord = strcmp(attrDescArray[adaIdx].relName, relation1.c_str())
             ? &record2
             : &record1;
-          memcpy(rData, inputRecord + attrDescArray[adaIdx].attrOffset);
+          memcpy(rData, inputRecord + attrDescArray[adaIdx].attrOffset, attrDescArray[adaIdx].attrLen);
           rData += attrDescArray[adaIdx].attrLen;
         }
         rData -= reclen;
