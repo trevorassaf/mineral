@@ -1,0 +1,8 @@
+#!/bin/bash
+./dbdestroy testdb
+y
+make clean
+make
+./dbcreate testdb
+clear
+./minirel testdb sql/insert.sql
