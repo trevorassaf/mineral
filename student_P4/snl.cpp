@@ -4,6 +4,7 @@
 #include "index.h"
 #include <cstring>
 #include <string>
+#include <iostream>
 
 Status Operators::SNL(const string& result,           // Output relation name
                       const int projCnt,              // Number of attributes in the projection
@@ -25,10 +26,6 @@ Status Operators::SNL(const string& result,           // Output relation name
   if (status != OK) {
     return status;
   }
-  HeapFileScan hfs2(relation2, status);
-  if (status != OK) {
-    return status;
-  }
 
   // Initialize result heap file
   HeapFile outputHfs(result, status);
@@ -36,23 +33,41 @@ Status Operators::SNL(const string& result,           // Output relation name
     return status;
   }
 
+  //TODO: Decide if order matters  
   // Perform heap file scans
   int numRecs1 = hfs1.getRecCnt();
-  int numRecs2 = hfs2.getRecCnt();
   
   for (int i = 0; i < numRecs1; ++i) {
     RID rid1;
     Record record1;
     status = hfs1.scanNext(rid1, record1);
+    
+    //If file has ended, then finish join
+    if (status == FILEEOF) {
+     break;
+    }
+    else if (status != OK) {
+      return status;
+    }
+
+    //Begin inner heap scan for each tuple in outer heap file
+    HeapFileScan hfs2(relation2, status);
     if (status != OK) {
       return status;
     }
+    int numRecs2 = hfs2.getRecCnt();
     
     for (int j = 0; j < numRecs2; ++j) {
       RID rid2;
       Record record2;
       status = hfs2.scanNext(rid2, record2);
-      if (status != OK) {
+      
+      //If inner heap file has ended, then reset the scan and break
+      if (status == FILEEOF) {
+        hfs2.endScan();
+        break;
+      }
+      else if (status != OK) {
         return status;
       }
 
@@ -68,7 +83,9 @@ Status Operators::SNL(const string& result,           // Output relation name
           (op == GT && comparison > 0) ||
           (op == GTE && comparison >= 0) ||
           (op == NE && comparison != 0)) {
+        
         // Records satisfy join criterion, perform join
+        int offset = 0;
         char* rData = new char[reclen];
         for (int adaIdx = 0; adaIdx < projCnt; ++adaIdx) {
           // Select record associated with this particular projection attribute
@@ -76,10 +93,9 @@ Status Operators::SNL(const string& result,           // Output relation name
           Record* inputRecord = strcmp(attrDescArray[adaIdx].relName, relation1.c_str())
             ? &record2
             : &record1;
-          memcpy(rData, inputRecord + attrDescArray[adaIdx].attrOffset, attrDescArray[adaIdx].attrLen);
-          rData += attrDescArray[adaIdx].attrLen;
+          memcpy(rData + offset, (char*)inputRecord->data + attrDescArray[adaIdx].attrOffset, attrDescArray[adaIdx].attrLen);
+          offset += attrDescArray[adaIdx].attrLen;
         }
-        rData -= reclen;
         Record newRecord = {rData, reclen};
         RID newRid;
         outputHfs.insertRecord(newRecord, newRid);

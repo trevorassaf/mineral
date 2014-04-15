@@ -51,10 +51,12 @@ Status Operators::Join(const string& result,           // Name of the output rel
     for (j = 0; j < attrCnt1; ++j) {
       if (!strcmp(projNames[i].attrName, inputDescs1->attrName) && 
           !strcmp(projNames[i].relName, inputDescs1->relName)) {
-        *projAttrDescs++ = *inputDescs1;  
+        *projAttrDescs++ = *inputDescs1;
+        reclen += inputDescs1->attrLen;  
         found = true;
         break;
       } 
+      inputDescs1++;
     }
     inputDescs1 -= j;
     
@@ -65,14 +67,15 @@ Status Operators::Join(const string& result,           // Name of the output rel
     for (j = 0; j < attrCnt2; ++j) {
       if (!strcmp(projNames[i].attrName, inputDescs2->attrName) && 
           !strcmp(projNames[i].relName, inputDescs2->relName)) {
-        *projAttrDescs++ = *inputDescs2;  
+        *projAttrDescs++ = *inputDescs2;
+        reclen += inputDescs2->attrLen;
         found = true;
         break;
       } 
+      inputDescs2++;
     }
     inputDescs2 -= j;
     assert(found); 
-    reclen += (projAttrDescs - 1)->attrLen;
   }
   projAttrDescs -= projCnt;
   
