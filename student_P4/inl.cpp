@@ -2,7 +2,7 @@
 #include "query.h"
 #include "sort.h"
 #include "index.h"
-
+#include <cstring>
 /* 
  * Indexed nested loop evaluates joins with an index on the 
  * inner/right relation (attrDesc2)
@@ -40,7 +40,7 @@ Status Operators::INL(const string& result,           // Name of the output rela
   }
 
   // Determine indexed attribute
-  AttrDesc* iaDesc, * niaDesc;
+  const AttrDesc* iaDesc, * niaDesc;
   HeapFileScan* niHfs, * iHfs;
   if (attrDesc1.indexed) {
     iaDesc = &attrDesc1;
@@ -72,7 +72,7 @@ Status Operators::INL(const string& result,           // Name of the output rela
   for (int nihIdx = 0; nihIdx < nihRecCnt; ++nihIdx) {
     RID niRid;
     Record niRecord;
-    status = niHfs->scanNext(rid, niRecord);
+    status = niHfs->scanNext(niRid, niRecord);
     if (status == FILEEOF) {
       break;
     }
@@ -107,11 +107,11 @@ Status Operators::INL(const string& result,           // Name of the output rela
         Record* inputRecord = strcmp(
             attrDescArray[pIdx].relName,
             iaDesc->relName)
-          ? iRecord
-          : niRecord;
+          ? &iRecord
+          : &niRecord;
         memcpy(
           newRecordMem,
-          inputRecord->data + attrDescArray[pIdx].attrOffset,
+          (char*)inputRecord->data + attrDescArray[pIdx].attrOffset,
           attrDescArray[pIdx].attrLen);
         newRecordMem += attrDescArray[pIdx].attrLen;
       }

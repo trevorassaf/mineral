@@ -6,4 +6,4 @@ make
 ./dbcreate testdb
 clear
 ./minirel testdb sql/datamation.sql
-./minirel testdb sql/select.sql
+./minirel testdb sql/join.sql
