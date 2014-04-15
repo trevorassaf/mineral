@@ -60,7 +60,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
           break;
         }
         //TODO: Figure out how to handle this
-        assert(check)
+        assert(check);
       }
       ++attrs;
     }
@@ -83,7 +83,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     }
 
     // Identify indexes on this relation
-    for (int i = 0; i < v1.size(); ++i) {
+    for (unsigned int i = 0; i < v1.size(); ++i) {
       // Obtain index associated with this attribute
       Index index(
         relation,
