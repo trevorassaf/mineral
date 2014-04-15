@@ -2,6 +2,7 @@
 #include "query.h"
 #include "index.h"
 #include <cstring>
+#include <iostream>
 
 Status Operators::IndexSelect(const string& result,       // Name of the output relation
                               const int projCnt,          // Number of attributes in the projection
@@ -27,6 +28,7 @@ Status Operators::IndexSelect(const string& result,       // Name of the output 
     return status;
   }
   
+  cout << "\nInitialized Index\n";
   // Initizlize relation heap file scan
   HeapFileScan inputHfs(relation, status);
   if (status != OK) {
@@ -36,6 +38,7 @@ Status Operators::IndexSelect(const string& result,       // Name of the output 
   // Initialize results heap file
   HeapFile outputHfs(result, status);
   
+  cout << "Initialized heap files\n";
   // Scan index for next RIDs
   int numRecs = inputHfs.getRecCnt();
   for (int i = 0; i < numRecs; ++i) {
@@ -47,7 +50,8 @@ Status Operators::IndexSelect(const string& result,       // Name of the output 
     } else if (status != OK) {
       return status;
     }
-    
+
+    cout << "Got RID\n";    
     // Fetch record from input heap file with rid
     Record inputRecord;
     status = inputHfs.getRecord(rid, inputRecord);
@@ -55,6 +59,7 @@ Status Operators::IndexSelect(const string& result,       // Name of the output 
       return status;
     }
       
+    cout << "Got Record\n";
     // Project attributes into new record
     char* projData = new char[reclen];
     int offset = 0; 
@@ -67,11 +72,13 @@ Status Operators::IndexSelect(const string& result,       // Name of the output 
     }
     Record resultsRecord = {projData, reclen};
     
+    cout << "Made record\n";
     // Add new record to results heap file
     status = outputHfs.insertRecord(resultsRecord, rid);
     if (status != OK) {
       return status;
     }
+    cout << "Added record to output\n";
   }
 
   return OK;

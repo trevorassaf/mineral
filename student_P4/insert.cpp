@@ -46,7 +46,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     
     // Initialize index vector
     vector<int> v1;
-
+    
     for (int i = 0; i < relAttrCnt; ++i) {
       bool check = false;
       for (int j = 0; j < attrCnt; ++j) {
@@ -59,9 +59,9 @@ Status Updates::Insert(const string& relation,      // Name of the relation
           }
           break;
         }
-        //TODO: Figure out how to handle this
-        assert(check);
       }
+      //TODO: Figure out how to handle this
+      assert(check);
       ++attrs;
     }
     attrs -= relAttrCnt;
