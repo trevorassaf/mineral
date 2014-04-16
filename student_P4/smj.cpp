@@ -4,6 +4,41 @@
 #include "index.h"
 #include <cstring>
 
+// TODO: remove this function
+void printRecord(const Record& r, const AttrDesc& ad) {
+  cout << "\n-- RECORD PRINT\n";
+  cout << "\t- relname: " << ad.relName << endl;
+  cout << "\t- attrName: " << ad.attrName << endl;
+  cout << "\t- attrOffset: " << ad.attrOffset << endl;
+  cout << "\t- attrLen: " << ad.attrLen << endl;
+  cout << "\t- indexed: " << (ad.indexed ? "TRUE" : "FALSE") << endl;
+  cout << "\t- attrType: ";
+  char* data = (char*)r.data;
+  switch (ad.attrType) {
+    case 0:
+      {
+        cout << "INTEGER\n";
+        //int value = *(data);
+        int value = *(data + ad.attrOffset);
+        cout << "\t- value: " << value << endl;
+      }
+      break;
+    case 1:
+      {
+        cout << "DOUBLE\n";
+        double value = *(data + ad.attrOffset);
+        cout << "\t- value: " << value << endl;
+      }
+      break;
+    case 2:
+      {
+      cout << "STRING\n";
+      cout << "\t- value: " << data + ad.attrOffset << endl;
+      }
+      break;
+  }
+  
+}
 /* Consider using Operators::matchRec() defined in join.cpp
  * to compare records when joining the relations */
   
@@ -92,6 +127,9 @@ Status Operators::SMJ(const string& result,           // Output relation name
   int recCnt1 = hf1.getRecCnt();
   int recCnt2 = hf2.getRecCnt();
 
+cout << "\nRECCNT1: "<<recCnt1<<", for relation: "<<relation1<<"\n";
+cout << "\nRECCNT2: "<<recCnt2<<", for relation: "<<relation2<<"\n";
+
   // Initialize heap file for output relation
   HeapFile outputHf(result, status);
   if (status != OK) {
@@ -114,6 +152,9 @@ Status Operators::SMJ(const string& result,           // Output relation name
   if (status != OK) {
     return status;
   }
+printRecord(currR1Rec, attrDesc1);  
+printRecord(currR2Rec, attrDesc2);  
+//cout << "COMPARISON: " << cmpR1R2 << "\n-----------------------\n";
 
   // Mark first record in relation2 because it won't be marked in loop
   prevR2Rec = currR2Rec;
@@ -129,7 +170,9 @@ Status Operators::SMJ(const string& result,           // Output relation name
     // Test join attributes of current relation1 record and current relation2 record
     //  for equality
     int cmpR1R2 = matchRec(currR1Rec, currR2Rec, attrDesc1, attrDesc2);
-    if (cmpR1R2 && status2 != FILEEOF) {
+
+
+    if (cmpR1R2 == 0 && status2 != FILEEOF) {
       // Join records 
       // Build join-record data with projected attributes
       char* joinRecData = new char[reclen];

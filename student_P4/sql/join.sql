@@ -1,5 +1,7 @@
 -- Test selection queries
 
+SELECT * FROM DB WHERE DB.serial = 65;
+
 CREATE INDEX DA (ikey);
 SELECT * FROM DA, DB WHERE DA.ikey = DB.ikey; -- use INL
 
