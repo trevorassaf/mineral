@@ -106,10 +106,10 @@ Status Operators::Join(const string& result,           // Name of the output rel
     int numTuples2 = hfs2.getRecCnt();
     int relSize1 = 0, relSize2 = 0;
     for (int i = 0; i < attrCnt1; ++i) {
-     relSize1 += (attrDescs1 + i)->attrLen;
+     relSize1 += (inputDescs1 + i)->attrLen;
     }
     for (int i = 0; i < attrCnt1; ++i) {
-     relSize2 += (attrDescs2 + i)->attrLen;
+     relSize2 += (inputDescs2 + i)->attrLen;
     }
     int relPages1 = ceil((numTuples1*relSize1)*1.0/PAGESIZE);
     int relPages2 = ceil((numTuples2*relSize2)*1.0/PAGESIZE);
@@ -126,12 +126,21 @@ Status Operators::Join(const string& result,           // Name of the output rel
         cDesc2,
         reclen);
      } else {
+       //Operator needs to be flipped if the order is switched
+       Operator op2;
+       switch(op)
+       {
+         case LT: op2 = GT; break;
+         case GT: op2 = LT; break;
+         case LTE: op2 = GTE; break;
+         case GTE: op2 = LTE; break;
+       } 
        return SNL(
         result,
         projCnt,
         projAttrDescs,
         cDesc2,
-        op,
+        op2,
         cDesc1,
         reclen);
      }
