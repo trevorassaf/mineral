@@ -112,23 +112,6 @@ Status Operators::SMJ(const string& result,           // Output relation name
   if (status != OK) {
     return status;
   }
-  
-  // Initialize heap files for input relations
-  HeapFile hf1(relation1, status);
-  if (status != OK) {
-    return status;
-  }
-  HeapFile hf2(relation2, status);
-  if (status != OK) {
-    return status;
-  }
-
-  // Fetch cardinality of each input relation
-  int recCnt1 = hf1.getRecCnt();
-  int recCnt2 = hf2.getRecCnt();
-
-cout << "\nRECCNT1: "<<recCnt1<<", for relation: "<<relation1<<"\n";
-cout << "\nRECCNT2: "<<recCnt2<<", for relation: "<<relation2<<"\n";
 
   // Initialize heap file for output relation
   HeapFile outputHf(result, status);
@@ -136,6 +119,111 @@ cout << "\nRECCNT2: "<<recCnt2<<", for relation: "<<relation2<<"\n";
     return status;
   }
 
+  Record rec1, rec2;
+  
+  //Initialize rec2
+  status = sf2.next(rec2);
+  if(status == FILEEOF)
+  { return OK;
+  }
+  else if (status != OK)
+  { return status;
+  }
+  
+  while (1)
+  {
+    status = sf1.next(rec1);
+    if (status == FILEEOF)
+    { break;
+    }
+    else if (status != OK)
+    { return status;
+    }
+    bool fileEnd = false;
+    
+    //Step through file 1 while rec2's attribute is greater than rec1's
+    while (0 > matchRec(rec1, rec2, attrDesc1, attrDesc2))
+    {
+      status = sf1.next(rec1);
+      if(status == FILEEOF)
+      { 
+        fileEnd = true;
+        break;
+      }
+      else if (status != OK)
+      { return status;
+      }
+    }
+    if(fileEnd)
+    { break;
+    }
+    
+    //Step through file 2 while rec1's attribute is greater than rec2's
+    while (0 < matchRec(rec1, rec2, attrDesc1, attrDesc2))
+    {
+      status = sf2.next(rec2);
+      if(status == FILEEOF)
+      { 
+        fileEnd = true;
+        break;
+      }
+      else if (status != OK)
+      { return status;
+      }
+    }
+    if(fileEnd)
+    { break;
+    }
+    
+    //Found a join match, since neither attribute value is greater than the other
+    sf2.setMark();
+    while ( 0 == matchRec(rec1, rec2, attrDesc1, attrDesc2))
+    {
+      // Join records 
+      // Build join-record data with projected attributes
+      char* joinRecData = new char[reclen];
+      for (int adIdx = 0; adIdx < projCnt; ++adIdx) {
+        // Determine from which to copy
+        Record* inputRecord = strcmp(attrDescArray[adIdx].relName, attrDesc1.relName)
+          ? &rec1
+          : &rec2;
+        
+        // Copy data from input record to join record
+        memcpy(
+          joinRecData,
+          (char*)inputRecord->data + attrDescArray[adIdx].attrOffset,
+          attrDescArray[adIdx].attrLen
+        );
+
+        // Advance join record pointer
+        joinRecData += attrDescArray[adIdx].attrLen;
+      }
+      
+      // Insert join record into result heap file
+      joinRecData -= reclen;
+      Record joinRec = {joinRecData, reclen};
+      RID outputRid;
+      status = outputHf.insertRecord(joinRec, outputRid);
+      if (status != OK) {
+        return status;
+      }
+      
+      //step through file 2 as long as a match exists
+      status = sf2.next(rec2);
+      if(status == FILEEOF)
+      { break;
+      }
+      else if (status != OK)
+      { return status;
+      }
+    }
+    
+    //Go back to the start of the matching record interval in file 2,
+    //to check for possible duplicate values in file 1.
+    sf2.gotoMark();
+  }
+  
+/*
   // Perform merge-join
   Record currR1Rec, currR2Rec, prevR2Rec;
   if (recCnt1 == 0 || recCnt2 == 0) {
@@ -248,7 +336,7 @@ printRecord(currR2Rec, attrDesc2);
 
 
   // Initialize sorted files
-
+*/
   return OK;
 }
 
