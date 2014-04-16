@@ -2,6 +2,7 @@
 #include "query.h"
 #include "sort.h"
 #include "index.h"
+#include <cstring>
 
 /* Consider using Operators::matchRec() defined in join.cpp
  * to compare records when joining the relations */
