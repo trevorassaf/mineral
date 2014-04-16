@@ -92,14 +92,49 @@ Status Operators::Join(const string& result,           // Name of the output rel
   
   // Delegate sub-join operations
   if (op != EQ) {
-    return SNL(
-      result,
-      projCnt,
-      projAttrDescs,
-      cDesc1,
-      op,
-      cDesc2,
-      reclen);
+    //Perform SNL. Might have to switch relation 1 and relation2 
+    //based on which is more efficient as the outer relation
+    HeapFileScan hfs1(relation1, status);
+    if(status != OK)
+    { return status;
+    }
+    HeapFileScan hfs2(relation2, status);
+    if(status != OK)
+    { return status;
+    }
+    int numTuples1 = hfs1.getRecCnt();
+    int numTuples2 = hfs2.getRecCnt();
+    int relSize1 = 0, relSize2 = 0;
+    for (int i = 0; i < attrCnt1; ++i) {
+     relSize1 += (attrDescs1 + i)->attrLen;
+    }
+    for (int i = 0; i < attrCnt1; ++i) {
+     relSize2 += (attrDescs2 + i)->attrLen;
+    }
+    int relPages1 = ceil((numTuples1*relSize1)*1.0/PAGESIZE);
+    int relPages2 = ceil((numTuples2*relSize2)*1.0/PAGESIZE);
+    
+    //Use formula to calculate total IOs, to decide in which order to send
+    //SNL the two AttrDesc structs (first parameter is outer, second is inner)
+    if(relPages1 + numTuples1*relPages2 <= relPages2 + numTuples2*relPages1) {
+      return SNL(
+        result,
+        projCnt,
+        projAttrDescs,
+        cDesc1,
+        op,
+        cDesc2,
+        reclen);
+     } else {
+       return SNL(
+        result,
+        projCnt,
+        projAttrDescs,
+        cDesc2,
+        op,
+        cDesc1,
+        reclen);
+     }
   }
   
   if (cDesc1.indexed || cDesc2.indexed) {

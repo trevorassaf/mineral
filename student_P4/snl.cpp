@@ -21,7 +21,7 @@ Status Operators::SNL(const string& result,           // Output relation name
   string relation2 = attrDesc2.relName;
   Status status;
   
-  // Initialize input heap file scans
+  // Initialize outer heap file scan
   HeapFileScan hfs1(relation1, status);
   if (status != OK) {
     return status;
@@ -33,8 +33,7 @@ Status Operators::SNL(const string& result,           // Output relation name
     return status;
   }
 
-  //TODO: Decide if order matters  
-  // Perform heap file scans
+  // Perform join using heap file scans
   int numRecs1 = hfs1.getRecCnt();
   
   for (int i = 0; i < numRecs1; ++i) {
