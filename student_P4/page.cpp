@@ -13,7 +13,6 @@ void Page::init(int pageNo)
 {
   // Initialize instance vars
   this->slotCnt = 0;
-  this->slot[0] = {0, -1};
   this->freePtr = 0;
   this->freeSpace = PAGESIZE - DPFIXED;
   this->curPage = pageNo;
@@ -185,7 +184,7 @@ const Status Page::firstRecord(RID& firstRid) const
   for (sIdx = 0; sIdx > sEndIdx; --sIdx) {
     // Search for slot with offset = 0 AND length != -1
     if (this->slot[sIdx].offset == 0 && this->slot[sIdx].length != -1) {
-      firstRid.pageNo = this->currPage;  
+      firstRid.pageNo = this->curPage;  
       firstRid.slotNo = sIdx * -1;
       return OK;
     }
@@ -199,7 +198,7 @@ const Status Page::firstRecord(RID& firstRid) const
 // TODO modified
 const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
 {
-  slot_t* currSlot = this->slot - curRid.slotNo;
+  const slot_t* currSlot = this->slot - curRid.slotNo;
   int endRecIdx = currSlot->offset + currSlot->length;
 
   // Return ENDOFPAGE if next record does not exist
@@ -235,7 +234,7 @@ const Status Page::getRecord(const RID & rid, Record & rec)
   }
 
   // Fetch slot
-  slot_t* currSlot = this->slot - rid.slotNo;
+  const slot_t* currSlot = this->slot - rid.slotNo;
 
   // Return error if slot does not contain record
   if (currSlot->length == -1) {
