@@ -60,7 +60,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
           break;
         }
       }
-      //TODO: Figure out how to handle this
+      //TODO: Figure out how to handle this. Same as line 32.
       assert(check);
       ++attrs;
     }

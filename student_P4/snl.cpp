@@ -95,6 +95,8 @@ Status Operators::SNL(const string& result,           // Output relation name
           memcpy(rData + offset, (char*)inputRecord->data + attrDescArray[adaIdx].attrOffset, attrDescArray[adaIdx].attrLen);
           offset += attrDescArray[adaIdx].attrLen;
         }
+        
+        //Write output record to new file
         Record newRecord = {rData, reclen};
         RID newRid;
         outputHfs.insertRecord(newRecord, newRid);

@@ -17,9 +17,11 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
 {
   cout << "Algorithm: File Scan" << endl;
   
-  // Initialize heap file scan
   string relation = projNames[0].relName;
   Status status;
+  
+  //If a selection attribute has been provided, initialize the filtered 
+  //heap file scan. Else, initialize a non-filtered heap file scan.
   HeapFileScan hfs = attrDesc 
     ? HeapFileScan(
       relation,
@@ -66,7 +68,7 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
     Record resultsRecord = {projData, reclen};
     
     // Add new record to results heap file
-    status = outHf.insertRecord(resultsRecord, rid); // we don't care about this rid
+    status = outHf.insertRecord(resultsRecord, rid); // rid doesn't matter here
     if (status != OK) {
       return status;
     }

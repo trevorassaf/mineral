@@ -67,7 +67,7 @@ Status Operators::INL(const string& result,           // Name of the output rela
     return status;
   }
 
-  // Initialize index scan
+  // Initialize scan. 
   int nihRecCnt = niHfs->getRecCnt();
   for (int nihIdx = 0; nihIdx < nihRecCnt; ++nihIdx) {
     RID niRid;

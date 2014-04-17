@@ -45,6 +45,7 @@ Status Operators::Select(const string & result,      // name of the output relat
     }
   }
 
+  //Decide what type of selection should be used
   AttrDesc outAttrDesc;
   if(attr)
   { 

@@ -45,6 +45,8 @@ Status Operators::Join(const string& result,           // Name of the output rel
   // Construct list of projected attribute descriptions
   AttrDesc* projAttrDescs = new AttrDesc[projCnt];
   int reclen = 0;
+  
+  //search through the first relation for an attribute match
   for (int i = 0; i < projCnt; ++i) {
     bool found = false;
     int j;
@@ -64,6 +66,7 @@ Status Operators::Join(const string& result,           // Name of the output rel
       continue;
     }
     
+    //If not found in the first relation, search for the attribute in the second relation
     for (j = 0; j < attrCnt2; ++j) {
       if (!strcmp(projNames[i].attrName, inputDescs2->attrName) && 
           !strcmp(projNames[i].relName, inputDescs2->relName)) {
@@ -102,6 +105,8 @@ Status Operators::Join(const string& result,           // Name of the output rel
     if(status != OK)
     { return status;
     }
+    
+    //Get num tuples for each file
     int numTuples1 = hfs1.getRecCnt();
     int numTuples2 = hfs2.getRecCnt();
     int relSize1 = 0, relSize2 = 0;
@@ -111,6 +116,8 @@ Status Operators::Join(const string& result,           // Name of the output rel
     for (int i = 0; i < attrCnt1; ++i) {
      relSize2 += (inputDescs2 + i)->attrLen;
     }
+    
+    //Calculate num pages for each file
     int relPages1 = ceil((numTuples1*relSize1)*1.0/PAGESIZE);
     int relPages2 = ceil((numTuples2*relSize2)*1.0/PAGESIZE);
     
@@ -134,6 +141,7 @@ Status Operators::Join(const string& result,           // Name of the output rel
          case GT: op2 = LT; break;
          case LTE: op2 = GTE; break;
          case GTE: op2 = LTE; break;
+         default: break;
        } 
        return SNL(
         result,

@@ -4,41 +4,7 @@
 #include "index.h"
 #include <cstring>
 
-// TODO: remove this function
-void printRecord(const Record& r, const AttrDesc& ad) {
-  cout << "\n-- RECORD PRINT\n";
-  cout << "\t- relname: " << ad.relName << endl;
-  cout << "\t- attrName: " << ad.attrName << endl;
-  cout << "\t- attrOffset: " << ad.attrOffset << endl;
-  cout << "\t- attrLen: " << ad.attrLen << endl;
-  cout << "\t- indexed: " << (ad.indexed ? "TRUE" : "FALSE") << endl;
-  cout << "\t- attrType: ";
-  char* data = (char*)r.data;
-  switch (ad.attrType) {
-    case 0:
-      {
-        cout << "INTEGER\n";
-        //int value = *(data);
-        int value = *(data + ad.attrOffset);
-        cout << "\t- value: " << value << endl;
-      }
-      break;
-    case 1:
-      {
-        cout << "DOUBLE\n";
-        double value = *(data + ad.attrOffset);
-        cout << "\t- value: " << value << endl;
-      }
-      break;
-    case 2:
-      {
-      cout << "STRING\n";
-      cout << "\t- value: " << data + ad.attrOffset << endl;
-      }
-      break;
-  }
-  
-}
+
 /* Consider using Operators::matchRec() defined in join.cpp
  * to compare records when joining the relations */
   
@@ -142,7 +108,7 @@ Status Operators::SMJ(const string& result,           // Output relation name
     bool fileEnd = false;
     
     //Step through file 1 while rec2's attribute is greater than rec1's
-    while (0 > matchRec(rec1, rec2, attrDesc1, attrDesc2))
+    while (matchRec(rec1, rec2, attrDesc1, attrDesc2) < 0)
     {
       status = sf1.next(rec1);
       if(status == FILEEOF)
@@ -159,7 +125,7 @@ Status Operators::SMJ(const string& result,           // Output relation name
     }
     
     //Step through file 2 while rec1's attribute is greater than rec2's
-    while (0 < matchRec(rec1, rec2, attrDesc1, attrDesc2))
+    while (matchRec(rec1, rec2, attrDesc1, attrDesc2) > 0)
     {
       status = sf2.next(rec2);
       if(status == FILEEOF)
@@ -173,6 +139,11 @@ Status Operators::SMJ(const string& result,           // Output relation name
     }
     if(fileEnd)
     { break;
+    }
+
+    //Confirm that a match has been found. If not, restart the search process.
+    if(matchRec(rec1, rec2, attrDesc1, attrDesc2) != 0)
+    { continue;
     }
     
     //Found a join match, since neither attribute value is greater than the other
