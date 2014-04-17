@@ -70,7 +70,7 @@ void UT_printRec(const int attrCnt, const AttrDesc attrs[], int *attrWidth,
       printf("%-*.2f  ", attrWidth[i], tempf);
       break;
     default:
-      printf("%-*.*s  ", attrWidth[i], attrWidth[i], attr);
+      printf("%-*.*s  ", attrWidth[i], attrs[i].attrLen, attr);
       break;
     }
   }

@@ -190,7 +190,7 @@ int Operators::matchRec(const Record& outerRec,     // Left record
             memcpy(&tmpFloat1, (char *) outerRec.data + attrDesc1.attrOffset, sizeof(double));
             memcpy(&tmpFloat2, (char *) innerRec.data + attrDesc2.attrOffset, sizeof(double));
             floatDiff = tmpFloat1 - tmpFloat2;
-            return (fabs(floatDiff) < DOUBLEERROR) ? 0 : floatDiff;
+            return (fabs(floatDiff) < DOUBLEERROR) ? 0 : (floatDiff < 0 ? floor(floatDiff) : ceil(floatDiff));
 
         case STRING:
             return strncmp(
