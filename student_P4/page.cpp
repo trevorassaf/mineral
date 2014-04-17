@@ -163,7 +163,6 @@ const Status Page::deleteRecord(const RID & rid)
     if(isLastSlot) {
       // Free current slot
       --(this->slotCnt);
-      currSlot->length = -1;
       this->freeSpace += sizeof(slot_t);
     } 
     else {
@@ -171,26 +170,7 @@ const Status Page::deleteRecord(const RID & rid)
       currSlot->length = -1;
     }
   }
-/*   else {
-    // Free record memory (shift downstream records)
-    void* readStart = this->data + currSlot->offset + currSlot->length;
-    void* writeStart = this->data + currSlot->offset;
-    bcopy(readStart, writeStart, currSlot->length);
-    this->freePtr -= currSlot->length;
-    this->freeSpace += currSlot->length;
-    
-    // Update offsets of remaining slots
-    for (int sIdx = -1 * this->slotCnt + 1; sIdx <= 0; ++sIdx) {
-      // Update offsets if they exceed offset of current record
-      if (this->slot[sIdx].offset > currSlot->offset) {
-        this->slot[sIdx].offset -= currSlot->offset; 
-      } 
-    }
-
-    // Invalidate slot (cannot free memory)
-    currSlot->length -1;
-  }
-*/
+  
   return OK;  
 }
 
@@ -223,7 +203,7 @@ const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
   int endRecIdx = currSlot->offset + currSlot->length;
 
   // Return ENDOFPAGE if next record does not exist
-  if (endRecIdx == this->freeSpace) {
+  if (endRecIdx == this->freePtr) {
     return ENDOFPAGE;
   }
 
@@ -235,10 +215,11 @@ const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
         && this->slot[sIdx].length != -1) {
       nextRid.pageNo = this->curPage;
       nextRid.slotNo = sIdx * -1;
+      return OK;
     }
   }
   
-  return OK;
+  return ENDOFPAGE;
 }
 
 // returns length and pointer to record with RID rid
