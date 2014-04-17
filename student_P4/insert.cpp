@@ -1,7 +1,6 @@
 #include "catalog.h"
 #include "query.h"
 #include "index.h"
-#include <cassert>
 #include <vector>
 #include <cstring>
 #include "utility.h"
@@ -29,8 +28,10 @@ Status Updates::Insert(const string& relation,      // Name of the relation
       return status;
     }
     
-    // TODO: Ensure number of inserted attributes equals number of attributes in record
-    assert(relAttrCnt == attrCnt);
+    // Return errorcode if attributes missing or extra attributes present
+    if (relAttrCnt != attrCnt) {
+      return ATTRNOTFOUND; 
+    }
 
     // Construct new record from attribute data
     // Calculate number of bytes in record
@@ -51,6 +52,10 @@ Status Updates::Insert(const string& relation,      // Name of the relation
       bool check = false;
       for (int j = 0; j < attrCnt; ++j) {
         if (!strcmp(attrs->attrName, attrList[j].attrName)) {
+          if (attrList[j].attrValue == NULL) {
+            delete[] rData;
+            return ATTRNOTFOUND;  
+          }
           // Copy inserted data into record 
           memcpy(rData + attrs->attrOffset, attrList[j].attrValue, attrs->attrLen);
           check = true;
@@ -60,8 +65,12 @@ Status Updates::Insert(const string& relation,      // Name of the relation
           break;
         }
       }
-      //TODO: Figure out how to handle this. Same as line 32.
-      assert(check);
+      
+      // Return errorcode if attribute not found
+      if (!check) {
+        delete[] rData;
+        return ATTRNOTFOUND; 
+      }
       ++attrs;
     }
     attrs -= relAttrCnt;
@@ -72,6 +81,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     // Obtain heapfile
     HeapFile hf(relation, status);
     if (status != OK) {
+      delete[] rData;
       return status;
     }
     
@@ -79,6 +89,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     RID rid;
     status = hf.insertRecord(record, rid);
     if (status != OK) {
+      delete[] rData;
       return status;
     }
 
@@ -94,6 +105,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
         status
       );
       if (status != OK) {
+        delete[] rData;
         return status;
       }
 
@@ -102,5 +114,6 @@ Status Updates::Insert(const string& relation,      // Name of the relation
       memcpy(ikValue, rData + attrs[v1[i]].attrOffset, attrs[v1[i]].attrLen);
       index.insertEntry(ikValue, rid);
     }
+    
     return OK;
 }

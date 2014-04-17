@@ -5,5 +5,6 @@ make clean
 make
 ./dbcreate testdb
 clear
-./minirel testdb sql/datamation.sql
-./minirel testdb sql/join.sql
+./minirel testdb sql/test2.sql
+#./minirel testdb sql/datamation.sql
+#./minirel testdb sql/join.sql

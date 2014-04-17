@@ -11,12 +11,12 @@ using namespace std;
 // TODO: modified
 void Page::init(int pageNo)
 {
+//cout << "\nINIT PAGE\n";
   // Initialize instance vars
   this->slotCnt = 0;
   this->freePtr = 0;
   this->freeSpace = PAGESIZE - DPFIXED;
   this->curPage = pageNo;
-  // TODO: validate: prevPage/nextPage not initialized here?
 }
 
 // dump page utlity
@@ -68,13 +68,9 @@ const short Page::getFreeSpace() const
 // TODO: modified
 const Status Page::insertRecord(const Record & rec, RID& rid)
 {
-  // Check sufficient empty space
-  if (rec.length + sizeof(slot_t) > this->freeSpace) {
-    return NOSPACE;
-  }
-
+//cout << "\nINSERT RECORD\n";
   // Search for vacant slot that has been previously allocated
-  int sEndIdx = -1 * this->slotCnt;
+  int sEndIdx = this->slotCnt;
   int sIdx;
   for (sIdx = 0; sIdx > sEndIdx; --sIdx) {
     // Search for vacant slot (slot.length = -1)
@@ -85,11 +81,19 @@ const Status Page::insertRecord(const Record & rec, RID& rid)
   
   // Assign slot number. Use vacant slot if available, otherwise, allocate new slot
   if (sIdx == sEndIdx) {
+    // Check sufficient empty space
+    if (rec.length + sizeof(slot_t) > this->freeSpace) {
+      return NOSPACE;
+    }
     // Allocate new slot
-    rid.slotNo = this->slotCnt;
+    rid.slotNo = 0 - this->slotCnt;
     this->freeSpace -= sizeof(slot_t);
-    ++(this->slotCnt);
+    --(this->slotCnt);
   } else {
+    // Check sufficient empty space
+    if (rec.length > this->freeSpace) {
+      return NOSPACE;
+    }
     // Reuse vacant slot
     rid.slotNo = sIdx * -1;
   } 
@@ -115,22 +119,23 @@ const Status Page::insertRecord(const Record & rec, RID& rid)
 // TODO: modified
 const Status Page::deleteRecord(const RID & rid)
 {
+//cout << "\nDELETE RECORD\n";
   // Fetch current slot  
   slot_t* currSlot = this->slot - rid.slotNo;
 
   // Return error code if record is absent in page
-  if (rid.pageNo != this->curPage || rid.slotNo >= this->slotCnt || 
+  if (rid.pageNo != this->curPage || rid.slotNo >= 0 - this->slotCnt || rid.slotNo < 0 ||
       currSlot->length == -1) {
     return INVALIDSLOTNO; 
   }
 
   // Delete record from page
-  bool isLastSlot = rid.slotNo + 1 == this->slotCnt;
+  bool isLastSlot = rid.slotNo + 1 == 0 - this->slotCnt;
   bool isLastRecord = freePtr == (currSlot->offset + currSlot->length);
   
   if (isLastSlot && isLastRecord) {
     // Free slot memory
-    --(this->slotCnt);
+    ++(this->slotCnt);
     this->freeSpace += sizeof(slot_t);
 
     // Free record memory
@@ -147,12 +152,15 @@ const Status Page::deleteRecord(const RID & rid)
     // Free record memory (shift downstream records)
     void* readStart = this->data + currSlot->offset + currSlot->length;
     void* writeStart = this->data + currSlot->offset;
-    bcopy(readStart, writeStart, currSlot->length);
+    bcopy(
+      readStart,
+      writeStart,
+      this->freePtr - (currSlot->offset + currSlot->length));
     this->freePtr -= currSlot->length;
     this->freeSpace += currSlot->length;
     
     // Update offsets of remaining slots
-    for (int sIdx = -1 * this->slotCnt + 1; sIdx <= 0; ++sIdx) {
+    for (int sIdx = this->slotCnt + 1; sIdx <= 0; ++sIdx) {
       // Update offsets if they exceed offset of current record
       if (this->slot[sIdx].offset > currSlot->offset) {
         this->slot[sIdx].offset -= currSlot->offset; 
@@ -161,7 +169,7 @@ const Status Page::deleteRecord(const RID & rid)
     
     if(isLastSlot) {
       // Free current slot
-      --(this->slotCnt);
+      ++(this->slotCnt);
       this->freeSpace += sizeof(slot_t);
     } 
     else {
@@ -178,14 +186,17 @@ const Status Page::deleteRecord(const RID & rid)
 // TODO modified
 const Status Page::firstRecord(RID& firstRid) const
 {
-  // Search through slots in order to find leading record
-  int sIdx;
-  int sEndIdx = this->slotCnt * -1;
-  for (sIdx = 0; sIdx > sEndIdx; --sIdx) {
-    // Search for slot with offset = 0 AND length != -1
-    if (this->slot[sIdx].offset == 0 && this->slot[sIdx].length != -1) {
-      firstRid.pageNo = this->curPage;  
-      firstRid.slotNo = sIdx * -1;
+//cout << "\nFIRST RECORD\n";
+  // Return error if no slots
+  if (this->slotCnt == 0) {
+    return NORECORDS;
+  }
+  
+  // Search for first occupied slot
+  for (int sIdx = 0; sIdx > this->slotCnt; --sIdx) {
+    if (this->slot[sIdx].length != -1) {
+      firstRid.pageNo = this->curPage;
+      firstRid.slotNo = 0 - sIdx;
       return OK;
     }
   }
@@ -198,26 +209,16 @@ const Status Page::firstRecord(RID& firstRid) const
 // TODO modified
 const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
 {
-  const slot_t* currSlot = this->slot - curRid.slotNo;
-  int endRecIdx = currSlot->offset + currSlot->length;
-
-  // Return ENDOFPAGE if next record does not exist
-  if (endRecIdx == this->freePtr) {
-    return ENDOFPAGE;
-  }
-
-  // Fetch slot associated with the next record
-  int sIdx;
-  int sEndIdx = this->slotCnt * -1;
-  for (sIdx = 0; sIdx > sEndIdx; --sIdx) {
-    if (this->slot[sIdx].offset == endRecIdx 
-        && this->slot[sIdx].length != -1) {
+//cout << "\nNEXT RECORD\n";
+  // Search for first occupied slot
+  for (int sIdx = 0 - curRid.slotNo - 1; sIdx > this->slotCnt; --sIdx) {
+    if (this->slot[sIdx].length != -1) {
       nextRid.pageNo = this->curPage;
-      nextRid.slotNo = sIdx * -1;
+      nextRid.slotNo = 0 - sIdx;
       return OK;
     }
   }
-  
+
   return ENDOFPAGE;
 }
 
@@ -226,9 +227,10 @@ const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
 // TODO: modified
 const Status Page::getRecord(const RID & rid, Record & rec)
 {
+//cout << "\nGET RECORD\n";
   // Return error if rid has invalid page number or invalid slot
   if (rid.pageNo != this->curPage 
-      || rid.slotNo >= this->slotCnt
+      || rid.slotNo >= 0 - this->slotCnt
       || rid.slotNo < 0) {
     return INVALIDSLOTNO;
   }

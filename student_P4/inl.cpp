@@ -81,8 +81,7 @@ Status Operators::INL(const string& result,           // Name of the output rela
     }
 
     // Search through index to find record to join on 
-    // TODO: what if there are multiple records to join on?? Join on all of them, right?
-    index.startScan(niRecord.data + niaDesc->attrOffset);
+    index.startScan((char*)niRecord.data + niaDesc->attrOffset);
     int ihRecCnt = iHfs->getRecCnt();
     for (int iIdx = 0; iIdx < ihRecCnt; ++iIdx) {
       RID iRid;

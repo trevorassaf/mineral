@@ -1,0 +1,10 @@
+#!/bin/bash
+./dbdestroyEC testdb
+y
+make clean
+make EC
+./dbcreateEC testdb
+clear
+./minirelEC testdb sql/insert.sql
+#./minirelEC testdb sql/datamation.sql
+#./minirelEC testdb sql/join.sql
