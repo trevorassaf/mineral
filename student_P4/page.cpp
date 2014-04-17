@@ -88,7 +88,7 @@ const Status Page::insertRecord(const Record & rec, RID& rid)
   if (sIdx == sEndIdx) {
     // Allocate new slot
     rid.slotNo = this->slotCnt;
-    this->freeSpace += sizeof(slot_t);
+    this->freeSpace -= sizeof(slot_t);
     ++(this->slotCnt);
   } else {
     // Reuse vacant slot
@@ -144,7 +144,7 @@ const Status Page::deleteRecord(const RID & rid)
 
     // Invalidate slot (cannot free memory)
     currSlot->length = -1;
-  } else if (isLastSlot) {
+  } else {
     // Free record memory (shift downstream records)
     void* readStart = this->data + currSlot->offset + currSlot->length;
     void* writeStart = this->data + currSlot->offset;
@@ -160,11 +160,18 @@ const Status Page::deleteRecord(const RID & rid)
       } 
     }
     
-    // Free current slot
-    --(this->slotCnt);
-    currSlot->length = -1;
-    this->freeSpace += sizeof(slot_t);
-  } else {
+    if(isLastSlot) {
+      // Free current slot
+      --(this->slotCnt);
+      currSlot->length = -1;
+      this->freeSpace += sizeof(slot_t);
+    } 
+    else {
+      //Invalidate slot (cannot free memory)
+      currSlot->length = -1;
+    }
+  }
+/*   else {
     // Free record memory (shift downstream records)
     void* readStart = this->data + currSlot->offset + currSlot->length;
     void* writeStart = this->data + currSlot->offset;
@@ -183,7 +190,7 @@ const Status Page::deleteRecord(const RID & rid)
     // Invalidate slot (cannot free memory)
     currSlot->length -1;
   }
-
+*/
   return OK;  
 }
 
