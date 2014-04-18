@@ -33,7 +33,5 @@ SELECT * FROM USERS WHERE USERS.userid = 2;
 SELECT * FROM USERS2 WHERE USERS2.fname = '2Trevor2';
 SELECT USERS2.fname FROM USERS2 WHERE USERS2.userid > 1;
 SELECT USERS.lname, USERS.userid FROM USERS WHERE USERS.fname = 'Trevor';
---Selection where duplicate values will be produced
-SELECT USERS2.fname, USERS2.lname FROM USERS2 WHERE USERS2.userid <> 4;
 
 SELECT USERS.fname FROM USERS WHERE USERS.fname = 'Hussein';

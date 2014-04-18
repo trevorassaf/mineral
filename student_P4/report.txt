@@ -1,0 +1,31 @@
+Testing Report: What each test case is testing
+
+test1.sql: Error handling for insert. All sql commands should return error codes.
+           Also a general select all statement to ensure nothing is in the database
+
+test2.sql: General insert commands. Tried to insert with order of attributes changed.
+           General select all statement to check that all inserts have worked.
+
+test3.sql: Insert commands when multiple relations are present. Alternating
+           inserts between the two relations. General select all statements
+           to ensure that both relations contain all inserted tuples
+
+test4.sql: Basic selection tests. Tried to scan select with a variety of operators.
+           Created indexes and tried to index select (and ensure that scan selects
+           were still chosen when appropriate. Ensured that outputting duplicate 
+           values wasn't a problem when projecting. 
+
+test5.sql: More selection tests. Make sure that it can handle multiple indexes
+           on the same relation and ensure that the index can handle duplicates.
+
+test6.sql: Basic selects and joins on a large database. Ensure that inl join
+           works regardless of which relation contains the index. Also, ensure
+           that joining on the projected attributes aren't a problem for inl, snl,
+           and smj.
+
+test7.sql: Test inl, snl, and smj with duplicates present. Ensure that complete
+           list of matching tuples is present.
+
+test8.sql: Test directed towards smj. First check to see if it can handle no 
+           common values, and then duplicates in various orders to ensure 
+           correctness in edge cases.
