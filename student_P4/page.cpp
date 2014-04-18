@@ -68,7 +68,10 @@ const short Page::getFreeSpace() const
 // TODO: modified
 const Status Page::insertRecord(const Record & rec, RID& rid)
 {
-//cout << "\nINSERT RECORD\n";
+  if(rec.length <= 0)
+  { return NORECORDS;
+  }
+  
   // Search for vacant slot that has been previously allocated
   int sEndIdx = this->slotCnt;
   int sIdx;
@@ -99,8 +102,8 @@ const Status Page::insertRecord(const Record & rec, RID& rid)
   } 
 
   // Assign slot values
-  this->slot[rid.slotNo * -1].length = rec.length;
-  this->slot[rid.slotNo * -1].offset = this->freePtr;
+  this->slot[sIdx].length = rec.length;
+  this->slot[sIdx].offset = this->freePtr;
 
   // Insert record into mem
   memcpy(data + freePtr, rec.data, rec.length);
@@ -121,7 +124,7 @@ const Status Page::deleteRecord(const RID & rid)
 {
 //cout << "\nDELETE RECORD\n";
   // Fetch current slot  
-  slot_t* currSlot = this->slot - rid.slotNo;
+  slot_t* currSlot = &(this->slot[-1 * rid.slotNo]);
 
   // Return error code if record is absent in page
   if (rid.pageNo != this->curPage || rid.slotNo >= 0 - this->slotCnt || rid.slotNo < 0 ||
@@ -178,6 +181,11 @@ const Status Page::deleteRecord(const RID & rid)
     }
   }
   
+  //if the offset is now zero, then that was the last record on the page
+  if(!this->freePtr)
+  { return NORECORDS;
+  }
+
   return OK;  
 }
 
