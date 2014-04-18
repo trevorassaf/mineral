@@ -156,8 +156,8 @@ Status Operators::SMJ(const string& result,           // Output relation name
       for (int adIdx = 0; adIdx < projCnt; ++adIdx) {
         // Determine from which to copy
         Record* inputRecord = strcmp(attrDescArray[adIdx].relName, attrDesc1.relName)
-          ? &rec1
-          : &rec2;
+          ? &rec2
+          : &rec1;
         
         // Copy data from input record to join record
         memcpy(

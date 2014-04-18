@@ -106,8 +106,8 @@ Status Operators::INL(const string& result,           // Name of the output rela
         Record* inputRecord = strcmp(
             attrDescArray[pIdx].relName,
             iaDesc->relName)
-          ? &iRecord
-          : &niRecord;
+          ? &niRecord
+          : &iRecord;
         memcpy(
           newRecordMem,
           (char*)inputRecord->data + attrDescArray[pIdx].attrOffset,
