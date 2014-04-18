@@ -13,7 +13,7 @@ INSERT INTO USERS(userid, fname, lname, rating) VALUES(4, 'Trevor', 'Assaf4', 9.
 
 INSERT INTO USERS2(userid, fname, lname, rating) VALUES(3, 'Trevor', '2Assaf3', -1.3);
 INSERT INTO USERS2(userid, fname, lname, rating) VALUES(4, 'Trevor', '2Assaf4', 8.6);
-INSERT INTO USERS2(userid, fname, lname, rating) VALUES(4, 'Trevor', '2Assaf4', 8.6);
+INSERT INTO USERS2(userid, fname, lname, rating) VALUES(4, 'Trevor', '2Assaf5', 8.6);
 
 --smj joins
 SELECT USERS.userid, USERS2.userid FROM USERS, USERS2 WHERE USERS.fname = USERS2.fname;

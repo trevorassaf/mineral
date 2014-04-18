@@ -148,7 +148,7 @@ Status Operators::SMJ(const string& result,           // Output relation name
     
     //Found a join match, since neither attribute value is greater than the other
     sf2.setMark();
-    while ( 0 == matchRec(rec1, rec2, attrDesc1, attrDesc2))
+    while (matchRec(rec1, rec2, attrDesc1, attrDesc2) == 0)
     {
       // Join records 
       // Build join-record data with projected attributes
@@ -192,6 +192,14 @@ Status Operators::SMJ(const string& result,           // Output relation name
     //Go back to the start of the matching record interval in file 2,
     //to check for possible duplicate values in file 1.
     sf2.gotoMark();
+    status = sf2.next(rec2);
+    if(status == FILEEOF)
+    { break;
+    }
+    else if (status != OK)
+    { return status;
+    }
+    
   }
   
   return OK;
