@@ -27,6 +27,7 @@ SELECT USERS2.lname, USERS2.fname FROM USERS2 WHERE USERS2.userid >= 1;
 SELECT USERS.rating FROM USERS WHERE USERS.userid = 2;
 SELECT USERS2.rating, USERS2.userid FROM USERS2 WHERE USERS2.rating < 0.4;
 SELECT USERS.fname FROM USERS WHERE USERS.rating = 0.0;
+--Selection where duplicate values will be produced
 SELECT USERS2.fname, USERS2.lname FROM USERS2 WHERE USERS2.userid <> 3;
 
 SELECT USERS.fname FROM USERS WHERE USERS.fname = 'Hussein';

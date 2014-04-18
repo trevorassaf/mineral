@@ -8,4 +8,4 @@ INSERT INTO USERS(lname, fname, age, userid) VALUES('Assaf', 'Trevor', 21, 4);
 
 SELECT * FROM USERS;
 
-SELECT * FROM USERS WHERE USERS.fname = 'Hussein';
+SELECT * FROM USERS WHERE USERS.fname = 'Hussein'
