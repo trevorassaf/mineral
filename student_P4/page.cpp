@@ -11,7 +11,6 @@ using namespace std;
 // TODO: modified
 void Page::init(int pageNo)
 {
-//cout << "\nINIT PAGE\n";
   // Initialize instance vars
   this->slotCnt = 0;
   this->freePtr = 0;
@@ -122,35 +121,29 @@ const Status Page::insertRecord(const Record & rec, RID& rid)
 // TODO: modified
 const Status Page::deleteRecord(const RID & rid)
 {
-//cout << "\nDELETE RECORD\n";
   // Fetch current slot  
   slot_t* currSlot = &(this->slot[-1 * rid.slotNo]);
 
   // Return error code if record is absent in page
-  if (rid.pageNo != this->curPage || rid.slotNo >= 0 - this->slotCnt || rid.slotNo < 0 ||
-      currSlot->length == -1) {
+  if (rid.pageNo != this->curPage || rid.slotNo >= 0 - this->slotCnt || 
+      rid.slotNo < 0 || currSlot->length == -1) {
     return INVALIDSLOTNO; 
   }
 
   // Delete record from page
-  bool isLastSlot = rid.slotNo + 1 == 0 - this->slotCnt;
   bool isLastRecord = freePtr == (currSlot->offset + currSlot->length);
   
-  if (isLastSlot && isLastRecord) {
-    // Free slot memory
-    ++(this->slotCnt);
-    this->freeSpace += sizeof(slot_t);
-
-    // Free record memory
-    this->freeSpace += currSlot->length;
-    this->freePtr -= currSlot->length;
-  } else if (isLastRecord) {
-    // Free record memory 
+  if (isLastRecord) {
     this->freeSpace += currSlot->length;
     this->freePtr -= currSlot->length;
 
     // Invalidate slot (cannot free memory)
     currSlot->length = -1;
+
+    //if the offset is now zero, then that was the last record on the page
+    if(this->freePtr == 0) {
+      return NORECORDS;
+    }
   } else {
     // Free record memory (shift downstream records)
     void* readStart = this->data + currSlot->offset + currSlot->length;
@@ -165,26 +158,12 @@ const Status Page::deleteRecord(const RID & rid)
     // Update offsets of remaining slots
     for (int sIdx = this->slotCnt + 1; sIdx <= 0; ++sIdx) {
       // Update offsets if they exceed offset of current record
-      if (this->slot[sIdx].offset > currSlot->offset) {
+      if (currSlot->length != -1 && this->slot[sIdx].offset > currSlot->offset) {
         this->slot[sIdx].offset -= currSlot->offset; 
       } 
     }
-    
-    if(isLastSlot) {
-      // Free current slot
-      ++(this->slotCnt);
-      this->freeSpace += sizeof(slot_t);
-    } 
-    else {
-      //Invalidate slot (cannot free memory)
-      currSlot->length = -1;
-    }
-  }
-  
-  //if the offset is now zero, then that was the last record on the page
-  if(!this->freePtr)
-  { return NORECORDS;
-  }
+    currSlot->length = -1;
+  }  
 
   return OK;  
 }
@@ -194,7 +173,6 @@ const Status Page::deleteRecord(const RID & rid)
 // TODO modified
 const Status Page::firstRecord(RID& firstRid) const
 {
-//cout << "\nFIRST RECORD\n";
   // Return error if no slots
   if (this->slotCnt == 0) {
     return NORECORDS;
@@ -217,7 +195,6 @@ const Status Page::firstRecord(RID& firstRid) const
 // TODO modified
 const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
 {
-//cout << "\nNEXT RECORD\n";
   // Search for first occupied slot
   for (int sIdx = 0 - curRid.slotNo - 1; sIdx > this->slotCnt; --sIdx) {
     if (this->slot[sIdx].length != -1) {
@@ -235,7 +212,6 @@ const Status Page::nextRecord (const RID &curRid, RID& nextRid) const
 // TODO: modified
 const Status Page::getRecord(const RID & rid, Record & rec)
 {
-//cout << "\nGET RECORD\n";
   // Return error if rid has invalid page number or invalid slot
   if (rid.pageNo != this->curPage 
       || rid.slotNo >= 0 - this->slotCnt
@@ -244,7 +220,7 @@ const Status Page::getRecord(const RID & rid, Record & rec)
   }
 
   // Fetch slot
-  const slot_t* currSlot = this->slot - rid.slotNo;
+  const slot_t* currSlot = &(this->slot[-1 * rid.slotNo]);
 
   // Return error if slot does not contain record
   if (currSlot->length == -1) {
